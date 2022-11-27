@@ -8,3 +8,7 @@
 glue_data/*
 out/*
 venv/*
+output*/
+*-output/
+.vscode/
+__pycache__/

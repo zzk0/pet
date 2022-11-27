@@ -266,3 +266,48 @@ If you make use of the code in this repository, please cite the following papers
       url={http://arxiv.org/abs/2009.07118},
       year={2020}
     }
+
+# Run project
+
+```
+CUDA_VISIBLE_DEVICES=1 python3 cli.py \
+--method pet \
+--pattern_ids 0 1 2 3 4 5 \
+--data_dir /home/percent1/models/nlp/data/ag_news \
+--model_type bert \
+--model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/bert-base-uncased \
+--task_name agnews \
+--output_dir agnews-output \
+--do_train \
+--do_eval \
+--train_examples 10 \
+--split_examples_evenly \
+--pet_max_steps 250 \
+--lm_training \
+--sc_max_steps 5000 \
+--pet_repetitions 1
+
+CUDA_VISIBLE_DEVICES=1 python3 cli.py \
+--method ipet \
+--pattern_ids 0 1 2 3 4 5 \
+--data_dir /home/percent1/models/nlp/data/ag_news \
+--model_type bert \
+--model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/bert-base-uncased \
+--task_name agnews \
+--output_dir agnews-output \
+--do_train \
+--do_eval \
+--train_examples 10 \
+--split_examples_evenly \
+--sc_max_steps 5000 \
+--pet_repetitions 1
+```
+
+```
+2022-11-26 23:31:05,833 - INFO - modeling - {'acc': 0.8094736842105263}
+2022-11-26 23:31:05,981 - INFO - modeling - === OVERALL RESULTS ===
+2022-11-26 23:31:05,982 - INFO - modeling - acc-p0: 0.8094736842105263 +- 0
+2022-11-26 23:31:05,982 - INFO - modeling - acc-all-p: 0.8094736842105263 +- 0
+
+(pet) percent1@ubuntu:~/models/nlp/pet$ CUDA_VISIBLE_DEVICES=1 python3 cli.py --method pet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type bert --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/bert-base-uncased --task_name agnews --output_dir agnews-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1
+```
