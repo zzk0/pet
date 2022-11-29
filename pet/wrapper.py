@@ -29,7 +29,8 @@ from transformers import InputExample, AdamW, get_linear_schedule_with_warmup, P
     XLNetLMHeadModel, BertConfig, BertForSequenceClassification, BertTokenizer, RobertaConfig, \
     RobertaForSequenceClassification, RobertaTokenizer, XLMRobertaConfig, XLMRobertaForSequenceClassification, \
     XLMRobertaTokenizer, AlbertForSequenceClassification, AlbertForMaskedLM, AlbertTokenizer, AlbertConfig, \
-    GPT2Config, GPT2LMHeadModel, GPT2Tokenizer
+    GPT2Config, GPT2LMHeadModel, GPT2Tokenizer, AutoConfig, AutoTokenizer, AutoModelForSequenceClassification, \
+    AutoModelForMaskedLM
 from transformers import __version__ as transformers_version
 
 import log
@@ -64,6 +65,12 @@ MODEL_CLASSES = {
         'tokenizer': RobertaTokenizer,
         SEQUENCE_CLASSIFIER_WRAPPER: RobertaForSequenceClassification,
         MLM_WRAPPER: RobertaForMaskedLM
+    },
+    'deberta': {
+        'config': AutoConfig,
+        'tokenizer': AutoTokenizer,
+        SEQUENCE_CLASSIFIER_WRAPPER: AutoModelForSequenceClassification,
+        MLM_WRAPPER: AutoModelForMaskedLM
     },
     'xlm-roberta': {
         'config': XLMRobertaConfig,
@@ -415,6 +422,7 @@ class TransformerModelWrapper:
 
         return DictDataset(**feature_dict)
 
+    # modify here to generate augmented examples
     def _convert_examples_to_features(self, examples: List[InputExample], labelled: bool = True,
                                       priming: bool = False) -> List[InputFeatures]:
         features = []
@@ -425,9 +433,9 @@ class TransformerModelWrapper:
             if self.task_helper:
                 self.task_helper.add_special_input_features(example, input_features)
             features.append(input_features)
-            if ex_index < 5:
-                logger.info(f'--- Example {ex_index} ---')
-                logger.info(input_features.pretty_print(self.tokenizer))
+            # if ex_index < 5:
+            #     logger.info(f'--- Example {ex_index} ---')
+            #     logger.info(input_features.pretty_print(self.tokenizer))
         return features
 
     def _mask_tokens(self, input_ids):
@@ -468,6 +476,7 @@ class TransformerModelWrapper:
             inputs['token_type_ids'] = batch['token_type_ids']
         return inputs
 
+    # modify here to support UDA
     def mlm_train_step(self, labeled_batch: Dict[str, torch.Tensor],
                        unlabeled_batch: Optional[Dict[str, torch.Tensor]] = None, lm_training: bool = False,
                        alpha: float = 0, **_) -> torch.Tensor:
@@ -482,7 +491,7 @@ class TransformerModelWrapper:
 
         if lm_training:
             lm_inputs = self.generate_default_inputs(unlabeled_batch)
-            lm_inputs['masked_lm_labels'] = unlabeled_batch['mlm_labels']
+            lm_inputs['labels'] = unlabeled_batch['mlm_labels']
             lm_loss = self.model(**lm_inputs)[0]
             loss = alpha * loss + (1 - alpha) * lm_loss
         return loss

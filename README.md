@@ -309,5 +309,39 @@ CUDA_VISIBLE_DEVICES=1 python3 cli.py \
 2022-11-26 23:31:05,982 - INFO - modeling - acc-p0: 0.8094736842105263 +- 0
 2022-11-26 23:31:05,982 - INFO - modeling - acc-all-p: 0.8094736842105263 +- 0
 
-(pet) percent1@ubuntu:~/models/nlp/pet$ CUDA_VISIBLE_DEVICES=1 python3 cli.py --method pet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type bert --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/bert-base-uncased --task_name agnews --output_dir agnews-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1
+CUDA_VISIBLE_DEVICES=1 python3 cli.py --method pet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type bert --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/bert-base-uncased --task_name agnews --output_dir agnews-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1
+```
+
+```
+CUDA_VISIBLE_DEVICES=1 python3 cli.py --method pet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type deberta --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/deberta-v3-base --task_name agnews --output_dir agnews-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1
+
+2022-11-27 13:39:24,006 - INFO - modeling - --- RESULT (pattern_id=0, iteration=0) ---
+2022-11-27 13:39:24,007 - INFO - modeling - {'acc': 0.6397368421052632}
+2022-11-27 13:39:24,187 - INFO - modeling - === OVERALL RESULTS ===
+2022-11-27 13:39:24,188 - INFO - modeling - acc-p0: 0.6397368421052632 +- 0
+2022-11-27 13:39:24,188 - INFO - modeling - acc-all-p: 0.6397368421052632 +- 0
+
+acc-p0: 0.5285526315789474 +- 0
+acc-p1: 0.5743421052631579 +- 0
+acc-p2: 0.4236842105263158 +- 0
+acc-p3: 0.45473684210526316 +- 0
+acc-p4: 0.5792105263157895 +- 0
+acc-p5: 0.5725 +- 0
+acc-all-p: 0.5221710526315789 +- 0.06752196472424073
+
+CUDA_VISIBLE_DEVICES=1 python3 cli.py --method pet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type deberta --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/deberta-v3-base --task_name agnews --output_dir agnews-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --sc_max_steps 5000 --pet_repetitions 1
+```
+
+```
+CUDA_VISIBLE_DEVICES=1 python3 cli.py --method pet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type roberta --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/roberta-base --task_name agnews --output_dir agnews-roberta-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1
+
+2022-11-27 18:40:19,208 - INFO - modeling - --- RESULT (pattern_id=0, iteration=0) ---
+2022-11-27 18:40:19,208 - INFO - modeling - {'acc': 0.8471052631578947}
+2022-11-27 18:40:19,444 - INFO - modeling - === OVERALL RESULTS ===
+2022-11-27 18:40:19,445 - INFO - modeling - acc-p0: 0.8471052631578947 +- 0
+2022-11-27 18:40:19,445 - INFO - modeling - acc-all-p: 0.8471052631578947 +- 0
+```
+
+```
+CUDA_VISIBLE_DEVICES=1 python3 cli.py --method ipet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type roberta --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/roberta-base --task_name agnews --output_dir agnews-iroberta-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1
 ```
