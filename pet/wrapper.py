@@ -37,6 +37,10 @@ import log
 from pet import preprocessor
 from pet.tasks import TASK_HELPERS
 from pet.utils import InputFeatures, DictDataset, distillation_loss
+from .attack import FGM, PGD
+
+fgm_enabled = False
+pgd_enabled = True
 
 logger = log.get_logger('root')
 
@@ -276,6 +280,8 @@ class TransformerModelWrapper:
         step = 0
         global_step = 0
         tr_loss, logging_loss = 0.0, 0.0
+        fgm = FGM(self.model)
+        pgd = PGD(self.model)
         self.model.zero_grad()
 
         train_iterator = trange(int(num_train_epochs), desc="Epoch")
@@ -315,6 +321,37 @@ class TransformerModelWrapper:
                     loss = loss / gradient_accumulation_steps
 
                 loss.backward()
+
+                if fgm_enabled:
+                    fgm.attack()
+                    # do it again
+                    loss_adv = self.task_helper.train_step(batch, **train_step_inputs) if self.task_helper else None
+                    if loss_adv is None:
+                        loss_adv = TRAIN_STEP_FUNCTIONS[self.config.wrapper_type](self)(batch, **train_step_inputs)
+                    if n_gpu > 1:
+                        loss_adv = loss_adv.mean()  # mean() to average on multi-gpu parallel training
+                    if gradient_accumulation_steps > 1:
+                        raise RuntimeError()
+                    fgm.restore()
+                
+                if pgd_enabled:
+                    K = 3
+                    pgd.backup_grad()
+                    for t in range(K):
+                        pgd.attack(is_first_attack=(t==0)) # 在embedding上添加对抗扰动, first attack时备份param.data
+                        if t != K-1:
+                            self.model.zero_grad()
+                        else:
+                            pgd.restore_grad()
+                        loss_adv = self.task_helper.train_step(batch, **train_step_inputs) if self.task_helper else None
+                        if loss_adv is None:
+                            loss_adv = TRAIN_STEP_FUNCTIONS[self.config.wrapper_type](self)(batch, **train_step_inputs)
+                        if n_gpu > 1:
+                            loss_adv = loss_adv.mean()  # mean() to average on multi-gpu parallel training
+                        if gradient_accumulation_steps > 1:
+                            raise RuntimeError()
+                        loss_adv.backward() # 反向传播，并在正常的grad基础上，累加对抗训练的梯度
+                    pgd.restore() # 恢复embedding参数
 
                 tr_loss += loss.item()
                 if (step + 1) % gradient_accumulation_steps == 0:
