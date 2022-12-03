@@ -32,6 +32,7 @@ from transformers import InputExample, AdamW, get_linear_schedule_with_warmup, P
     GPT2Config, GPT2LMHeadModel, GPT2Tokenizer, AutoConfig, AutoTokenizer, AutoModelForSequenceClassification, \
     AutoModelForMaskedLM
 from transformers import __version__ as transformers_version
+from smart_pytorch import SMARTLoss, kl_loss, sym_kl_loss
 
 import log
 from pet import preprocessor
@@ -40,7 +41,8 @@ from pet.utils import InputFeatures, DictDataset, distillation_loss
 from .attack import FGM, PGD
 
 fgm_enabled = False
-pgd_enabled = True
+pgd_enabled = False
+freelb_enabled = True
 
 logger = log.get_logger('root')
 
@@ -320,6 +322,56 @@ class TransformerModelWrapper:
                 if gradient_accumulation_steps > 1:
                     loss = loss / gradient_accumulation_steps
 
+                # if freelb_enabled:
+                #     self.adv_K = 3
+                #     self.adv_lr = 1e-2
+                #     self.adv_max_norm = 0
+                #     self.adv_init_mag = 2e-2
+                #     self.adv_norm_type = 'l2'
+                #     self.base_model = 'roberta'
+                #     input_ids = unlabeled_batch['input_ids']
+                #     embeds_init = getattr(self.model, self.base_model).embeddings.word_embeddings(input_ids)
+                #     if self.adv_init_mag > 0:
+                #         input_mask = unlabeled_batch['attention_mask'].to(embeds_init)
+                #         input_lengths = torch.sum(input_mask, 1)
+                #         if self.adv_norm_type == "l2":
+                #             delta = torch.zeros_like(embeds_init).uniform_(-1, 1) * input_mask.unsqueeze(2)
+                #             dims = input_lengths * embeds_init.size(-1)
+                #             mag = self.adv_init_mag / torch.sqrt(dims)
+                #             delta = (delta * mag.view(-1, 1, 1)).detach()
+                #         elif self.adv_norm_type == "linf":
+                #             delta = torch.zeros_like(embeds_init).uniform_(-self.adv_init_mag, self.adv_init_mag)
+                #             delta = delta * input_mask.unsqueeze(2)
+                #     else:
+                #         delta = torch.zeros_like(embeds_init)
+
+                #     for astep in range(self.adv_K):
+                #         delta.requires_grad_()
+                #         inputs = {}
+                #         inputs['inputs_embeds'] = delta + embeds_init
+                #         inputs['input_ids'] = None
+                #         loss = TRAIN_STEP_FUNCTIONS[self.config.wrapper_type](self)(batch, **train_step_inputs)
+                #         loss.backward()
+                #         delta_grad = delta.grad.clone().detach()
+                #         if self.adv_norm_type == "l2":
+                #             denorm = torch.norm(delta_grad.view(delta_grad.size(0), -1), dim=1).view(-1, 1, 1)
+                #             denorm = torch.clamp(denorm, min=1e-8)
+                #             delta = (delta + self.adv_lr * delta_grad / denorm).detach()
+                #             if self.adv_max_norm > 0:
+                #                 delta_norm = torch.norm(delta.view(delta.size(0), -1).float(), p=2, dim=1).detach()
+                #                 exceed_mask = (delta_norm > self.adv_max_norm).to(embeds_init)
+                #                 reweights = (self.adv_max_norm / delta_norm * exceed_mask + (1 - exceed_mask)).view(-1, 1, 1)
+                #                 delta = (delta * reweights).detach()
+                #         elif self.adv_norm_type == "linf":
+                #             denorm = torch.norm(delta_grad.view(delta_grad.size(0), -1), dim=1, p=float("inf")).view(-1, 1, 1)
+                #             denorm = torch.clamp(denorm, min=1e-8)
+                #             delta = (delta + self.adv_lr * delta_grad / denorm).detach()
+                #             if self.adv_max_norm > 0:
+                #                 delta = torch.clamp(delta, -self.adv_max_norm, self.adv_max_norm).detach()
+                #         else:
+                #             raise ValueError("Norm type {} not specified.".format(self.adv_norm_type))
+                #         embeds_init = getattr(self.model, self.base_model).embeddings.word_embeddings(input_ids)
+
                 loss.backward()
 
                 if fgm_enabled:
@@ -518,13 +570,23 @@ class TransformerModelWrapper:
                        unlabeled_batch: Optional[Dict[str, torch.Tensor]] = None, lm_training: bool = False,
                        alpha: float = 0, **_) -> torch.Tensor:
         """Perform a MLM training step."""
-
         inputs = self.generate_default_inputs(labeled_batch)
-        mlm_labels, labels = labeled_batch['mlm_labels'], labeled_batch['labels']
+        embed = self.model.roberta.embeddings(inputs['input_ids'])
 
-        outputs = self.model(**inputs)
-        prediction_scores = self.preprocessor.pvp.convert_mlm_logits_to_cls_logits(mlm_labels, outputs[0])
+        def eval(embed):
+            print('attacking...')
+            mlm_labels = labeled_batch['mlm_labels']
+            inputs['input_ids'] = None
+            inputs['inputs_embeds'] = embed
+            outputs = self.model(**inputs)
+            prediction_scores = self.preprocessor.pvp.convert_mlm_logits_to_cls_logits(mlm_labels, outputs[0])
+            return prediction_scores 
+
+        smart_loss_fn = SMARTLoss(eval_fn = eval, loss_fn = kl_loss, loss_last_fn = sym_kl_loss)
+        labels = labeled_batch['labels']
+        prediction_scores = eval(embed)
         loss = nn.CrossEntropyLoss()(prediction_scores.view(-1, len(self.config.label_list)), labels.view(-1))
+        loss += 0.02 * smart_loss_fn(embed, prediction_scores)
 
         if lm_training:
             lm_inputs = self.generate_default_inputs(unlabeled_batch)
@@ -532,6 +594,21 @@ class TransformerModelWrapper:
             lm_loss = self.model(**lm_inputs)[0]
             loss = alpha * loss + (1 - alpha) * lm_loss
         return loss
+
+
+        # inputs = self.generate_default_inputs(labeled_batch)
+        # mlm_labels, labels = labeled_batch['mlm_labels'], labeled_batch['labels']
+
+        # outputs = self.model(**inputs)
+        # prediction_scores = self.preprocessor.pvp.convert_mlm_logits_to_cls_logits(mlm_labels, outputs[0])
+        # loss = nn.CrossEntropyLoss()(prediction_scores.view(-1, len(self.config.label_list)), labels.view(-1))
+
+        # if lm_training:
+        #     lm_inputs = self.generate_default_inputs(unlabeled_batch)
+        #     lm_inputs['labels'] = unlabeled_batch['mlm_labels']
+        #     lm_loss = self.model(**lm_inputs)[0]
+        #     loss = alpha * loss + (1 - alpha) * lm_loss
+        # return loss
 
     def plm_train_step(self, labeled_batch: Dict[str, torch.Tensor], lm_training: bool = False, **_):
         """Perform a PLM training step."""
