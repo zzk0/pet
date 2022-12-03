@@ -42,7 +42,8 @@ from .attack import FGM, PGD
 
 fgm_enabled = False
 pgd_enabled = False
-freelb_enabled = True
+freelb_enabled = False
+smart_enabled = True
 
 logger = log.get_logger('root')
 
@@ -143,6 +144,7 @@ class WrapperConfig(object):
         self.pattern_id = pattern_id
         self.verbalizer_file = verbalizer_file
         self.cache_dir = cache_dir
+        self.generation = None
 
 
 class TransformerModelWrapper:
@@ -570,45 +572,41 @@ class TransformerModelWrapper:
                        unlabeled_batch: Optional[Dict[str, torch.Tensor]] = None, lm_training: bool = False,
                        alpha: float = 0, **_) -> torch.Tensor:
         """Perform a MLM training step."""
-        inputs = self.generate_default_inputs(labeled_batch)
-        embed = self.model.roberta.embeddings(inputs['input_ids'])
+        if self.config.generation is not None and self.config.generation == 0 and smart_enabled:
+            inputs = self.generate_default_inputs(labeled_batch)
+            embed = self.model.roberta.embeddings(inputs['input_ids'])
+            def eval(embed):
+                print('self.config.generation, attacking...')
+                mlm_labels = labeled_batch['mlm_labels']
+                inputs['input_ids'] = None
+                inputs['inputs_embeds'] = embed
+                outputs = self.model(**inputs)
+                prediction_scores = self.preprocessor.pvp.convert_mlm_logits_to_cls_logits(mlm_labels, outputs[0])
+                return prediction_scores 
 
-        def eval(embed):
-            print('attacking...')
-            mlm_labels = labeled_batch['mlm_labels']
-            inputs['input_ids'] = None
-            inputs['inputs_embeds'] = embed
+            smart_loss_fn = SMARTLoss(eval_fn = eval, loss_fn = kl_loss, loss_last_fn = sym_kl_loss)
+            labels = labeled_batch['labels']
+            prediction_scores = eval(embed)
+            loss = nn.CrossEntropyLoss()(prediction_scores.view(-1, len(self.config.label_list)), labels.view(-1))
+            loss += 0.02 * smart_loss_fn(embed, prediction_scores)
+            if lm_training:
+                lm_inputs = self.generate_default_inputs(unlabeled_batch)
+                lm_inputs['labels'] = unlabeled_batch['mlm_labels']
+                lm_loss = self.model(**lm_inputs)[0]
+                loss = alpha * loss + (1 - alpha) * lm_loss
+            return loss
+        else:
+            inputs = self.generate_default_inputs(labeled_batch)
+            mlm_labels, labels = labeled_batch['mlm_labels'], labeled_batch['labels']
             outputs = self.model(**inputs)
             prediction_scores = self.preprocessor.pvp.convert_mlm_logits_to_cls_logits(mlm_labels, outputs[0])
-            return prediction_scores 
-
-        smart_loss_fn = SMARTLoss(eval_fn = eval, loss_fn = kl_loss, loss_last_fn = sym_kl_loss)
-        labels = labeled_batch['labels']
-        prediction_scores = eval(embed)
-        loss = nn.CrossEntropyLoss()(prediction_scores.view(-1, len(self.config.label_list)), labels.view(-1))
-        loss += 0.02 * smart_loss_fn(embed, prediction_scores)
-
-        if lm_training:
-            lm_inputs = self.generate_default_inputs(unlabeled_batch)
-            lm_inputs['labels'] = unlabeled_batch['mlm_labels']
-            lm_loss = self.model(**lm_inputs)[0]
-            loss = alpha * loss + (1 - alpha) * lm_loss
-        return loss
-
-
-        # inputs = self.generate_default_inputs(labeled_batch)
-        # mlm_labels, labels = labeled_batch['mlm_labels'], labeled_batch['labels']
-
-        # outputs = self.model(**inputs)
-        # prediction_scores = self.preprocessor.pvp.convert_mlm_logits_to_cls_logits(mlm_labels, outputs[0])
-        # loss = nn.CrossEntropyLoss()(prediction_scores.view(-1, len(self.config.label_list)), labels.view(-1))
-
-        # if lm_training:
-        #     lm_inputs = self.generate_default_inputs(unlabeled_batch)
-        #     lm_inputs['labels'] = unlabeled_batch['mlm_labels']
-        #     lm_loss = self.model(**lm_inputs)[0]
-        #     loss = alpha * loss + (1 - alpha) * lm_loss
-        # return loss
+            loss = nn.CrossEntropyLoss()(prediction_scores.view(-1, len(self.config.label_list)), labels.view(-1))
+            if lm_training:
+                lm_inputs = self.generate_default_inputs(unlabeled_batch)
+                lm_inputs['labels'] = unlabeled_batch['mlm_labels']
+                lm_loss = self.model(**lm_inputs)[0]
+                loss = alpha * loss + (1 - alpha) * lm_loss
+            return loss
 
     def plm_train_step(self, labeled_batch: Dict[str, torch.Tensor], lm_training: bool = False, **_):
         """Perform a PLM training step."""

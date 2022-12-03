@@ -341,7 +341,7 @@ acc-p4: 0.8330263157894737 +- 0
 acc-p5: 0.7835526315789474 +- 0
 acc-all-p: 0.8194956140350877 +- 0.02267917526645072
 
-CUDA_VISIBLE_DEVICES=1 python3 cli.py --method pet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type roberta --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/roberta-base --task_name agnews --output_dir agnews-roberta-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1
+CUDA_VISIBLE_DEVICES=1 python3 cli.py --method pet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type roberta --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/roberta-base --task_name agnews --output_dir agnews-roberta-50-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1
 
 2022-11-27 18:40:19,208 - INFO - modeling - --- RESULT (pattern_id=0, iteration=0) ---
 2022-11-27 18:40:19,208 - INFO - modeling - {'acc': 0.8471052631578947}
@@ -497,5 +497,89 @@ acc-all-p: 0.8547368421052631 +- 0
 ```
 
 ```
+smart + roberta + ipet(attack all generations)
 
+acc-p0: 0.8186842105263158 +- 0
+acc-p1: 0.8510526315789474 +- 0
+acc-p2: 0.8357894736842105 +- 0
+acc-p3: 0.8323684210526315 +- 0
+acc-p4: 0.8603947368421052 +- 0
+acc-p5: 0.8101315789473684 +- 0
+acc-all-p: 0.8347368421052631 +- 0.018943895880619004
+
+acc-p0: 0.8602631578947368 +- 0
+acc-p1: 0.8336842105263158 +- 0
+acc-p2: 0.8403947368421053 +- 0
+acc-p3: 0.8202631578947368 +- 0
+acc-p4: 0.8356578947368422 +- 0
+acc-p5: 0.8236842105263158 +- 0
+acc-all-p: 0.8356578947368422 +- 0.014227572622013978
+
+acc-p0: 0.8561842105263158 +- 0
+acc-p1: 0.8278947368421052 +- 0
+acc-p2: 0.8222368421052632 +- 0
+acc-p3: 0.8318421052631579 +- 0
+acc-p4: 0.8453947368421053 +- 0
+acc-p5: 0.84 +- 0
+acc-all-p: 0.8372587719298246 +- 0.012446399391084986
+
+acc-p0: 0.848421052631579 +- 0
+acc-all-p: 0.848421052631579 +- 0
+```
+
+```
+50 training examples
+
+without smart:
+acc-p0: 0.8661842105263158 +- 0
+acc-p1: 0.8514473684210526 +- 0
+acc-p2: 0.8672368421052632 +- 0
+acc-p3: 0.85 +- 0
+acc-p4: 0.8567105263157895 +- 0
+acc-p5: 0.8556578947368421 +- 0
+acc-all-p: 0.8578728070175439 +- 0.007297789607042763
+2022-12-03 13:33:54,507 - INFO - modeling - --- RESULT (pattern_id=0, iteration=0) ---
+2022-12-03 13:33:54,508 - INFO - modeling - {'acc': 0.863421052631579}
+2022-12-03 13:33:54,728 - INFO - modeling - === OVERALL RESULTS ===
+2022-12-03 13:33:54,728 - INFO - modeling - acc-p0: 0.863421052631579 +- 0
+2022-12-03 13:33:54,728 - INFO - modeling - acc-all-p: 0.863421052631579 +- 0
+
+with smart:
+2022-12-03 12:03:17,584 - INFO - modeling - --- RESULT (pattern_id=0, iteration=0) ---
+2022-12-03 12:03:17,584 - INFO - modeling - {'acc': 0.8585526315789473}
+2022-12-03 12:03:17,717 - INFO - modeling - === OVERALL RESULTS ===
+2022-12-03 12:03:17,718 - INFO - modeling - acc-p0: 0.8585526315789473 +- 0
+2022-12-03 12:03:17,718 - INFO - modeling - acc-all-p: 0.8585526315789473 +- 0
+```
+
+```
+100 training examples
+
+without smart:
+acc-p0: 0.8673684210526316 +- 0
+acc-p1: 0.8777631578947368 +- 0
+acc-p2: 0.8692105263157894 +- 0
+acc-p3: 0.8740789473684211 +- 0
+acc-p4: 0.8748684210526316 +- 0
+acc-p5: 0.8671052631578947 +- 0
+acc-all-p: 0.8717324561403509 +- 0.004439042866397422
+2022-12-03 18:45:17,241 - INFO - modeling - --- RESULT (pattern_id=0, iteration=0) ---
+2022-12-03 18:45:17,241 - INFO - modeling - {'acc': 0.8825}
+2022-12-03 18:45:17,340 - INFO - modeling - === OVERALL RESULTS ===
+2022-12-03 18:45:17,341 - INFO - modeling - acc-p0: 0.8825 +- 0
+2022-12-03 18:45:17,341 - INFO - modeling - acc-all-p: 0.8825 +- 0
+
+with smart:
+acc-p0: 0.8607894736842105 +- 0
+acc-p1: 0.8796052631578948 +- 0
+acc-p2: 0.8786842105263157 +- 0
+acc-p3: 0.8817105263157895 +- 0
+acc-p4: 0.878421052631579 +- 0
+acc-p5: 0.8592105263157894 +- 0
+acc-all-p: 0.8730701754385966 +- 0.01020213527520549
+2022-12-03 21:50:46,585 - INFO - modeling - --- RESULT (pattern_id=0, iteration=0) ---
+2022-12-03 21:50:46,585 - INFO - modeling - {'acc': 0.8842105263157894}
+2022-12-03 21:50:46,681 - INFO - modeling - === OVERALL RESULTS ===
+2022-12-03 21:50:46,681 - INFO - modeling - acc-p0: 0.8842105263157894 +- 0
+2022-12-03 21:50:46,681 - INFO - modeling - acc-all-p: 0.8842105263157894 +- 0
 ```
