@@ -214,6 +214,12 @@ def main():
     parser.add_argument("--eval_set", choices=['dev', 'test'], default='dev',
                         help="Whether to perform evaluation on the dev set or the test set")
 
+    # custom
+    parser.add_argument("--adversarial", choices=['smart'], default='',
+                        help="Whether to perform adversarial training on model")
+    parser.add_argument("--smart-generation", default=[], type=int, nargs='+',
+                        help="The generation to perform adversarial training")
+
     args = parser.parse_args()
     logger.info("Parameters: {}".format(args))
 

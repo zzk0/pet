@@ -121,7 +121,8 @@ class WrapperConfig(object):
     """A configuration for a :class:`TransformerModelWrapper`."""
 
     def __init__(self, model_type: str, model_name_or_path: str, wrapper_type: str, task_name: str, max_seq_length: int,
-                 label_list: List[str], pattern_id: int = 0, verbalizer_file: str = None, cache_dir: str = None):
+                 label_list: List[str], pattern_id: int = 0, verbalizer_file: str = None, cache_dir: str = None,
+                 adversarial_type: str = '', smart_generation = None):
         """
         Create a new config.
 
@@ -144,7 +145,8 @@ class WrapperConfig(object):
         self.pattern_id = pattern_id
         self.verbalizer_file = verbalizer_file
         self.cache_dir = cache_dir
-        self.generation = None
+        self.smart_enabled = (adversarial_type == 'smart')
+        self.generation = smart_generation
 
 
 class TransformerModelWrapper:
@@ -572,7 +574,7 @@ class TransformerModelWrapper:
                        unlabeled_batch: Optional[Dict[str, torch.Tensor]] = None, lm_training: bool = False,
                        alpha: float = 0, **_) -> torch.Tensor:
         """Perform a MLM training step."""
-        if self.config.generation is not None and self.config.generation == 0 and smart_enabled:
+        if self.config.generation is not None and self.config.generation == 2 and self.config.smart_enabled:
             inputs = self.generate_default_inputs(labeled_batch)
             embed = self.model.roberta.embeddings(inputs['input_ids'])
             def eval(embed):
