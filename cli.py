@@ -37,7 +37,7 @@ def load_pet_configs(args) -> Tuple[WrapperConfig, pet.TrainConfig, pet.EvalConf
     model_cfg = WrapperConfig(model_type=args.model_type, model_name_or_path=args.model_name_or_path,
                               wrapper_type=args.wrapper_type, task_name=args.task_name, label_list=args.label_list,
                               max_seq_length=args.pet_max_seq_length, verbalizer_file=args.verbalizer_file,
-                              cache_dir=args.cache_dir)
+                              cache_dir=args.cache_dir, adversarial_type=args.adversarial, smart_generation=args.smart_generation)
 
     train_cfg = pet.TrainConfig(device=args.device, per_gpu_train_batch_size=args.pet_per_gpu_train_batch_size,
                                 per_gpu_unlabeled_batch_size=args.pet_per_gpu_unlabeled_batch_size, n_gpu=args.n_gpu,
@@ -217,7 +217,7 @@ def main():
     # custom
     parser.add_argument("--adversarial", choices=['smart'], default='',
                         help="Whether to perform adversarial training on model")
-    parser.add_argument("--smart-generation", default=[], type=int, nargs='+',
+    parser.add_argument("--smart_generation", default=[], type=int, nargs='+',
                         help="The generation to perform adversarial training")
 
     args = parser.parse_args()

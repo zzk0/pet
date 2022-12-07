@@ -341,7 +341,7 @@ acc-p4: 0.8330263157894737 +- 0
 acc-p5: 0.7835526315789474 +- 0
 acc-all-p: 0.8194956140350877 +- 0.02267917526645072
 
-CUDA_VISIBLE_DEVICES=1 python3 cli.py --method pet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type roberta --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/roberta-base --task_name agnews --output_dir agnews-roberta-50-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1
+CUDA_VISIBLE_DEVICES=1 python3 cli.py --method pet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type roberta --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/roberta-base --task_name agnews --output_dir agnews-roberta-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1 --seed 2333
 
 2022-11-27 18:40:19,208 - INFO - modeling - --- RESULT (pattern_id=0, iteration=0) ---
 2022-11-27 18:40:19,208 - INFO - modeling - {'acc': 0.8471052631578947}
@@ -386,7 +386,15 @@ acc-all-p: 0.851030701754386 +- 0.016668184372263663
 2022-11-28 00:18:29,943 - INFO - modeling - acc-p0: 0.8653947368421052 +- 0
 2022-11-28 00:18:29,943 - INFO - modeling - acc-all-p: 0.8653947368421052 +- 0
 
-CUDA_VISIBLE_DEVICES=1 python3 cli.py --method ipet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type roberta --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/roberta-base --task_name agnews --output_dir agnews-iroberta-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1 --seed 2333
+CUDA_VISIBLE_DEVICES=0 python3 cli.py --method ipet --pattern_ids 0 1 2 3 4 5 --data_dir /home/percent1/models/nlp/data/ag_news --model_type roberta --model_name_or_path /home/percent1/models/nlp/text-classification/pretrained/roberta-base --task_name agnews --output_dir agnews-iroberta-output --do_train --do_eval --train_examples 10 --split_examples_evenly --pet_max_steps 250 --lm_training --sc_max_steps 5000 --pet_repetitions 1 --seed 2333
+
+change to another seed
+
+2022-12-04 15:46:07,082 - INFO - modeling - --- RESULT (pattern_id=0, iteration=0) ---
+2022-12-04 15:46:07,083 - INFO - modeling - {'acc': 0.8556578947368421}
+2022-12-04 15:46:07,196 - INFO - modeling - === OVERALL RESULTS ===
+2022-12-04 15:46:07,196 - INFO - modeling - acc-p0: 0.8556578947368421 +- 0
+2022-12-04 15:46:07,196 - INFO - modeling - acc-all-p: 0.8556578947368421 +- 0
 ```
 
 
@@ -557,6 +565,38 @@ acc-all-p: 0.8352850877192982 +- 0.016232260009148937
 2022-12-04 03:02:47,876 - INFO - modeling - === OVERALL RESULTS ===
 2022-12-04 03:02:47,877 - INFO - modeling - acc-p0: 0.8467105263157895 +- 0
 2022-12-04 03:02:47,877 - INFO - modeling - acc-all-p: 0.8467105263157895 +- 0
+
+smart + roberta + ipet(attack last generation)
+
+acc-p0: 0.8163157894736842 +- 0
+acc-p1: 0.8475 +- 0
+acc-p2: 0.8060526315789474 +- 0
+acc-p3: 0.8305263157894737 +- 0
+acc-p4: 0.8330263157894737 +- 0
+acc-p5: 0.7835526315789474 +- 0
+acc-all-p: 0.8194956140350877 +- 0.02267917526645072
+
+acc-p0: 0.8311842105263157 +- 0
+acc-p1: 0.8268421052631579 +- 0
+acc-p2: 0.8307894736842105 +- 0
+acc-p3: 0.8419736842105263 +- 0
+acc-p4: 0.795921052631579 +- 0
+acc-p5: 0.8464473684210526 +- 0
+acc-all-p: 0.8288596491228071 +- 0.017773323926547
+
+acc-p0: 0.8446052631578947 +- 0
+acc-p1: 0.8717105263157895 +- 0
+acc-p2: 0.8638157894736842 +- 0
+acc-p3: 0.8510526315789474 +- 0
+acc-p4: 0.8681578947368421 +- 0
+acc-p5: 0.8436842105263158 +- 0
+acc-all-p: 0.857171052631579 +- 0.01227589975038247
+
+2022-12-04 15:38:34,527 - INFO - modeling - --- RESULT (pattern_id=0, iteration=0) ---
+2022-12-04 15:38:34,527 - INFO - modeling - {'acc': 0.8694736842105263}
+2022-12-04 15:38:34,644 - INFO - modeling - === OVERALL RESULTS ===
+2022-12-04 15:38:34,645 - INFO - modeling - acc-p0: 0.8694736842105263 +- 0
+2022-12-04 15:38:34,645 - INFO - modeling - acc-all-p: 0.8694736842105263 +- 0
 ```
 
 ```
