@@ -218,7 +218,7 @@ def main():
     parser.add_argument("--adversarial", choices=['smart'], default='',
                         help="Whether to perform adversarial training on model")
     parser.add_argument("--smart_generation", default=[], type=int, nargs='+',
-                        help="The generation to perform adversarial training")
+                        help="The generation to perform adversarial training, suggest [0] for pet and [2] for ipet(with 3 generations)")
 
     args = parser.parse_args()
     logger.info("Parameters: {}".format(args))

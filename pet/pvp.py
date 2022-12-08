@@ -291,16 +291,16 @@ class AgnewsPVP(PVP):
 
 class YahooPVP(PVP):
     VERBALIZER = {
-        "1": ["Society"],
-        "2": ["Science"],
-        "3": ["Health"],
-        "4": ["Education"],
-        "5": ["Computer"],
-        "6": ["Sports"],
-        "7": ["Business"],
-        "8": ["Entertainment"],
-        "9": ["Relationship"],
-        "10": ["Politics"],
+        "1": [" Society"],
+        "2": [" Science"],
+        "3": [" Health"],
+        "4": [" Education"],
+        "5": [" Computer"],
+        "6": [" Sports"],
+        "7": [" Business"],
+        "8": [" Entertainment"],
+        "9": [" Relationship"],
+        "10": [" Politics"],
     }
 
     def get_parts(self, example: InputExample) -> FilledPattern:
@@ -380,11 +380,11 @@ class YelpPolarityPVP(PVP):
 
 class YelpFullPVP(YelpPolarityPVP):
     VERBALIZER = {
-        "1": ["terrible"],
-        "2": ["bad"],
-        "3": ["okay"],
-        "4": ["good"],
-        "5": ["great"]
+        "1": [" terrible"],
+        "2": [" bad"],
+        "3": [" okay"],
+        "4": [" good"],
+        "5": [" great"]
     }
 
     def verbalize(self, label) -> List[str]:
